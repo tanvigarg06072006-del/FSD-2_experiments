@@ -1,21 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
   const [platform, setPlatform] = useState("Twitter");
   const [post, setPost] = useState("");
+  const [savedPosts, setSavedPosts] = useState([]);
 
+  // Character limits
   const limits = {
     Twitter: 280,
     Facebook: 63206,
     LinkedIn: 3000,
   };
 
+  // Load posts from localStorage when app starts
+  useEffect(() => {
+    const storedPosts = JSON.parse(localStorage.getItem("posts")) || [];
+    setSavedPosts(storedPosts);
+  }, []);
+
+  // Save posts whenever savedPosts changes
+  useEffect(() => {
+    localStorage.setItem("posts", JSON.stringify(savedPosts));
+  }, [savedPosts]);
+
   const count = post.length;
   const maxLimit = limits[platform];
   const isValid = count <= maxLimit;
 
-  function handlePost()          {
-    console.log("fghfgfgf")
+  function handlePost() {
+    if (post.trim() === "") {
+      alert("Please write a post.");
+      return;
+    }
+
+    const newPost = {
+      id: Date.now(),
+      platform: platform,
+      content: post,
+    };
+
+    setSavedPosts([...savedPosts, newPost]);
+
+    alert("Post Published Successfully!");
+
+    setPost("");
   }
 
   return (
@@ -93,6 +121,7 @@ function App() {
 
       <button
         disabled={!isValid}
+        onClick={handlePost}
         style={{
           padding: "10px 20px",
           fontSize: "16px",
@@ -102,10 +131,33 @@ function App() {
           borderRadius: "5px",
           cursor: isValid ? "pointer" : "not-allowed",
         }}
-        onClick={handlePost}
       >
         Publish Post
       </button>
+
+      <hr />
+
+      <h2>Published Posts</h2>
+
+      {savedPosts.length === 0 ? (
+        <p>No posts available.</p>
+      ) : (
+        savedPosts.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+              padding: "15px",
+              marginTop: "15px",
+              textAlign: "left",
+            }}
+          >
+            <h3>{item.platform}</h3>
+            <p>{item.content}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
